@@ -1,7 +1,10 @@
-package com.fr.sinapps.dao;
+package com.fr.sinapps.config;
 
 import com.fr.sinapps.model.CarPark;
-import org.springframework.stereotype.Repository;
+import com.fr.sinapps.repository.CarParkRepository;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -14,56 +17,49 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
-@Repository
-public class CarParkDao {
+@Configuration
+public class initDatas {
 
-    private static List<CarPark> carParks = new ArrayList<>();
+    // Error on carParkRepository for intellij ide. But when we build the project the repository is founded by the app
+    @Bean
+    CommandLineRunner fillCarParkList(CarParkRepository carParkRepository) {
 
-    public List<CarPark> getAllCarParks() {
-        return carParks;
-    }
+        return args -> {
 
-    public CarParkDao() {
-        fillCarParkList();
-    }
+            // Fill the datas from an xml url
+            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
-    public void addCarPark(CarPark carPark) {
-        carParks.add(carPark);
-    }
+            DocumentBuilder docBuilder;
+            URL url;
+            InputStream stream;
+            Document doc = null;
+            try {
+                url = new URL("http://data.lacub.fr/wfs?key=9Y2RU3FTE8&SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&TYPENAME=ST_PARK_P&SRSNAME=EPSG:4326");
+                docBuilder = dbf.newDocumentBuilder();
+                stream = url.openStream();
+                doc = docBuilder.parse(stream);
+            } catch (ParserConfigurationException | SAXException | IOException e) {
+                e.printStackTrace();
+            }
 
-    public static void fillCarParkList() {
+            if (doc != null) {
+                addCarParkObjectFromNode(doc.getElementsByTagName("gml:featureMember"), carParkRepository);
+            } else {
+                System.out.println(" The document is null");
+            }
+        };
 
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-        DocumentBuilder docBuilder;
-        URL url;
-        InputStream stream;
-        Document doc = null;
-        try {
-            url = new URL("http://data.lacub.fr/wfs?key=9Y2RU3FTE8&SERVICE=WFS&VERSION=1.1.0&REQUEST=GetFeature&TYPENAME=ST_PARK_P&SRSNAME=EPSG:4326");
-            docBuilder = dbf.newDocumentBuilder();
-            stream = url.openStream();
-            doc = docBuilder.parse(stream);
-        } catch (ParserConfigurationException | SAXException | IOException e) {
-            e.printStackTrace();
-        }
+        /* Display all datas
 
-        if (doc != null) {
-            addCarParkObjectFromNode(doc.getElementsByTagName("gml:featureMember"));
-        } else {
-            System.out.println(" The document is null");
-        }
-
-        /* int counter =0;
+        int counter =0;
         for(CarPark cp : carParks) {
             counter++;
             System.out.println("-------------"+counter+"\n"+cp.toString()+"\n");
         }*/
     }
 
-    private static void addCarParkObjectFromNode(NodeList list) {
+    private static void addCarParkObjectFromNode(NodeList list, CarParkRepository carParkRepository) {
 
         for (int temp = 0; temp < list.getLength(); temp++) {
 
@@ -89,7 +85,7 @@ public class CarParkDao {
                 currentAttribute = element.getElementsByTagName("bm:INFOR").item(0).getTextContent();
                 currentCarPark.setInfo(currentAttribute.isEmpty() ? "No data" : currentAttribute);
                 currentAttribute = element.getElementsByTagName("bm:GID").item(0).getTextContent();
-                currentCarPark.setId(Integer.parseInt(currentAttribute.isEmpty() ? "-1" : currentAttribute));
+                currentCarPark.setId(Long.parseLong(currentAttribute.isEmpty() ? "-1" : currentAttribute));
                 currentAttribute = element.getElementsByTagName("bm:LIBRES").item(0).getTextContent();
                 currentCarPark.setFreeSpot(Integer.parseInt(currentAttribute.isEmpty() ? "-1" : currentAttribute));
                 currentAttribute = element.getElementsByTagName("bm:TOTAL").item(0).getTextContent();
@@ -99,7 +95,7 @@ public class CarParkDao {
                 currentAttribute = element.getElementsByTagName("bm:NP_VELTOT").item(0).getTextContent();
                 currentCarPark.setBikeSpot(Integer.parseInt(currentAttribute.isEmpty() ? "-1" : currentAttribute));
 
-                carParks.add(currentCarPark);
+                carParkRepository.save(currentCarPark);
             }
         }
     }

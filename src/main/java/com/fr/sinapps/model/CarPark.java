@@ -1,17 +1,22 @@
 package com.fr.sinapps.model;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+
+@Entity
 public class CarPark {
 
+    private @Id @GeneratedValue long id;
+    private String ident, name, address, status, url, info;
+    private int freeSpot, totalSpot, carpollingSpot, bikeSpot;
+    private double posLat, posLon;
 
-     private String ident, name, address, status, url, info;
-     private int id, freeSpot, totalSpot, carpollingSpot, bikeSpot;
-     private Double posX, posY;
-
-    public CarPark(){
+    public CarPark() {
 
     }
 
-    public CarPark(int id, String ident, String name, String address, String status, String url, String info, String pos, int freeSpot, int totalSpot, int carpollingSpot, int bikeSpot) {
+    public CarPark(long id, String ident, String name, String address, String status, String url, String info, String pos, int freeSpot, int totalSpot, int carpollingSpot, int bikeSpot) {
         super();
         this.id = id;
         this.ident = ident;
@@ -27,11 +32,11 @@ public class CarPark {
         this.bikeSpot = bikeSpot;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -83,18 +88,18 @@ public class CarPark {
         this.info = info;
     }
 
-    public Double getPosX() {
-        return posX;
+    public double getPosLat() {
+        return posLat;
     }
 
-    public Double getPosY() {
-        return posY;
+    public double getPosLon() {
+        return posLon;
     }
 
-    public void setPos(String pos){
+    public void setPos(String pos) {
         String[] tempoPosTab = pos.split(" ");
-        this.posX = Double.parseDouble(tempoPosTab[0]);
-        this.posY = Double.parseDouble(tempoPosTab[1]);
+        this.posLat = Double.parseDouble(tempoPosTab[0]);
+        this.posLon = Double.parseDouble(tempoPosTab[1]);
     }
 
     public int getFreeSpot() {
@@ -143,8 +148,36 @@ public class CarPark {
                 ", totalSpot=" + totalSpot +
                 ", carpollingSpot=" + carpollingSpot +
                 ", bikeSpot=" + bikeSpot +
-                ", posX=" + posX +
-                ", posY=" + posY +
+                ", posLat=" + posLat +
+                ", posLon=" + posLon +
                 '}';
     }
+
+    @Override
+    public boolean equals(Object currentCp) {
+
+        if (this == currentCp)
+            return true;
+
+        if (!(currentCp instanceof CarPark))
+            return false;
+        CarPark newCp = (CarPark) currentCp;
+
+        return this.id == newCp.id && this.ident.equals(newCp.ident);
+    }
+
+    public void updateCarPark(CarPark carPark) {
+        this.name = carPark.name;
+        this.address =  carPark.address;
+        this.status =  carPark.status;
+        this.url =  carPark.url;
+        this.info =  carPark.info;
+        this.posLat =  carPark.posLat;
+        this.posLon =  carPark.posLon;
+        this.freeSpot =  carPark.freeSpot;
+        this.totalSpot =  carPark.totalSpot;
+        this.carpollingSpot =  carPark.carpollingSpot;
+        this.bikeSpot =  carPark.bikeSpot;
+    }
+
 }
